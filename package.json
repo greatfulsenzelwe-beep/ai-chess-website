@@ -1,0 +1,12 @@
+{
+  "name": "ai-chess-website",
+  "version": "1.0.0",
+  "description": "AI Chess Learning Website",
+  "main": "index.html",
+  "scripts": {
+    "start": "echo 'No build process needed'"
+  },
+  "keywords": ["chess", "ai", "learning"],
+  "author": "Your Name",
+  "license": "MIT"
+}

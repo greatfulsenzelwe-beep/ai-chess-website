@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chess Learner - Your Personal Chess Training Partner</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Chess Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for progress charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <h1><i class="fas fa-chess"></i> AI Chess Learner</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link active">Home</a></li>
+                <li><a href="#game-settings" class="nav-link">Play</a></li>
+                <li><a href="#stats" class="nav-link">Stats</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+            </ul>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="hero">
+                <div class="hero-content">
+                    <h2>Master Chess with an AI That Learns From You</h2>
+                    <p>Experience personalized chess training with an AI that adapts to your playing style and helps you improve at your own pace</p>
+                    <div class="hero-buttons">
+                        <button id="start-learning-btn" class="btn btn-primary"><i class="fas fa-graduation-cap"></i> Start Learning</button>
+                        <button id="watch-demo-btn" class="btn btn-secondary"><i class="fas fa-play-circle"></i> Watch Demo</button>
+                        <button id="stats-btn" class="btn btn-secondary"><i class="fas fa-chart-line"></i> Stats</button>
+                        <button id="start-playing-btn" class="btn btn-primary"><i class="fas fa-chess-board"></i> Start Playing</button>
+                        <button id="import-games-btn" class="btn btn-secondary"><i class="fas fa-download"></i> Import Games</button>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="chess-preview">
+                        <div class="preview-board">
+                            <div class="preview-piece white-piece" style="grid-area: a1;">♔</div>
+                            <div class="preview-piece white-piece" style="grid-area: b1;">♘</div>
+                            <div class="preview-piece white-piece" style="grid-area: c1;">♗</div>
+                            <div class="preview-piece white-piece" style="grid-area: d1;">♕</div>
+                            <div class="preview-piece white-piece" style="grid-area: e1;">♔</div>
+                            <div class="preview-piece white-piece" style="grid-area: f1;">♗</div>
+                            <div class="preview-piece white-piece" style="grid-area: g1;">♘</div>
+                            <div class="preview-piece white-piece" style="grid-area: h1;">♖</div>
+                            <div class="preview-piece white-piece" style="grid-area: a2;">♙</div>
+                            <div class="preview-piece white-piece" style="grid-area: b2;">♙</div>
+                            <div class="preview-piece white-piece" style="grid-area: c2;">♙</div>
+                            <div class="preview-piece white-piece" style="grid-area: d2;">♙</div>
+                            <div class="preview-piece white-piece" style="grid-area: e2;">♙</div>
+                            <div class="preview-piece white-piece" style="grid-area: f2;">♙</div>
+                            <div class="preview-piece white-piece" style="grid-area: g2;">♙</div>
+                            <div class="preview-piece white-piece" style="grid-area: h2;">♙</div>
+                            
+                            <div class="preview-piece black-piece" style="grid-area: a8;">♜</div>
+                            <div class="preview-piece black-piece" style="grid-area: b8;">♞</div>
+                            <div class="preview-piece black-piece" style="grid-area: c8;">♝</div>
+                            <div class="preview-piece black-piece" style="grid-area: d8;">♛</div>
+                            <div class="preview-piece black-piece" style="grid-area: e8;">♚</div>
+                            <div class="preview-piece black-piece" style="grid-area: f8;">♝</div>
+                            <div class="preview-piece black-piece" style="grid-area: g8;">♞</div>
+                            <div class="preview-piece black-piece" style="grid-area: h8;">♜</div>
+                            <div class="preview-piece black-piece" style="grid-area: a7;">♟</div>
+                            <div class="preview-piece black-piece" style="grid-area: b7;">♟</div>
+                            <div class="preview-piece black-piece" style="grid-area: c7;">♟</div>
+                            <div class="preview-piece black-piece" style="grid-area: d7;">♟</div>
+                            <div class="preview-piece black-piece" style="grid-area: e7;">♟</div>
+                            <div class="preview-piece black-piece" style="grid-area: f7;">♟</div>
+                            <div class="preview-piece black-piece" style="grid-area: g7;">♟</div>
+                            <div class="preview-piece black-piece" style="grid-area: h7;">♟</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Game Settings Section -->
+        <section id="game-settings" class="section">
+            <div class="container">
+                <h2 class="section-title">Game Settings</h2>
+                <div class="settings-container">
+                    <div class="settings-card">
+                        <h3><i class="fas fa-cog"></i> Configure Your Game</h3>
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label for="color-select">Your Color:</label>
+                                <select id="color-select">
+                                    <option value="white">White</option>
+                                    <option value="black">Black</option>
+                                    <option value="random">Random</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="difficulty-select">Difficulty:</label>
+                                <select id="difficulty-select">
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                    <option value="expert">Expert</option>
+                                    <option value="adaptive">Adaptive (Adjusts to Your Play)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="personality-select">AI Personality:</label>
+                                <select id="personality-select">
+                                    <option value="balanced">Balanced</option>
+                                    <option value="tactical">Tactical</option>
+                                    <option value="positional">Positional</option>
+                                    <option value="aggressive">Aggressive</option>
+                                    <option value="tricky">Tricky</option>
+                                    <option value="defensive">Defensive</option>
+                                    <option value="endgame_master">Endgame Master</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="time-control-select">Time Control:</label>
+                                <select id="time-control-select">
+                                    <option value="none">No Time Control</option>
+                                    <option value="bullet">Bullet (1+0)</option>
+                                    <option value="blitz">Blitz (3+0)</option>
+                                    <option value="blitz2">Blitz (5+0)</option>
+                                    <option value="rapid">Rapid (10+5)</option>
+                                    <option value="classical">Classical (30+0)</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                                <div id="custom-time" class="custom-time hidden">
+                                    <input type="number" id="custom-minutes" placeholder="Minutes" min="1" value="10">
+                                    <span>+</span>
+                                    <input type="number" id="custom-increment" placeholder="Increment" min="0" value="0">
+                                </div>
+                            </div>
+                            
+                            <button id="start-game-btn" class="btn btn-primary"><i class="fas fa-play"></i> Start Game</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Game Section -->
+        <section id="game" class="section">
+            <div class="game-container">
+                <div class="game-board-container">
+                    <div class="game-header">
+                        <h3>Game Board</h3>
+                        <div class="game-info">
+                            <div id="game-status">White to move</div>
+                        </div>
+                    </div>
+                    <div class="game-board">
+                        <div id="chess-board"></div>
+                    </div>
+                    <div class="game-controls">
+                        <button id="resign-btn" class="btn btn-danger"><i class="fas fa-flag"></i> Resign</button>
+                        <button id="offer-draw-btn" class="btn btn-secondary"><i class="fas fa-handshake"></i> Offer Draw</button>
+                        <button id="new-game-btn" class="btn btn-primary"><i class="fas fa-redo"></i> New Game</button>
+                    </div>
+                </div>
+                
+                <div class="side-panel">
+                    <!-- Move History Panel -->
+                    <div class="move-history-panel">
+                        <div class="panel-header">
+                            <h3><i class="fas fa-history"></i> Move History</h3>
+                        </div>
+                        <div class="move-list" id="move-list">
+                            <div class="no-moves">No moves yet</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Panel -->
+                    <div class="chat-panel" id="chat-panel">
+                        <div class="panel-header">
+                            <h3><i class="fas fa-robot"></i> AI Coach</h3>
+                        </div>
+                        <div class="chat-content">
+                            <div class="chat-messages" id="chat-messages">
+                                <div class="chat-message ai">
+                                    <div class="message-avatar ai-avatar"><i class="fas fa-robot"></i></div>
+                                    <div class="message-content">
+                                        <p>Hello! I'm your AI chess coach. Ready to improve your game?</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chat-input-area">
+                                <input type="text" id="chat-input" placeholder="Ask me anything about chess...">
+                                <button id="send-chat-btn" class="send-btn"><i class="fas fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section id="stats" class="section">
+            <div class="container">
+                <h2 class="section-title">Your Learning Progress</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-chess-board"></i></div>
+                        <h3>Games Played</h3>
+                        <div class="stat-value" id="games-played">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-percentage"></i></div>
+                        <h3>Win Rate</h3>
+                        <div class="stat-value" id="win-rate">0%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-trophy"></i></div>
+                        <h3>Current Rating</h3>
+                        <div class="stat-value" id="rating">1200</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-brain"></i></div>
+                        <h3>Learning Score</h3>
+                        <div class="stat-value" id="learning-score">0</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/script.js"></script>
+</body>
+</html>
