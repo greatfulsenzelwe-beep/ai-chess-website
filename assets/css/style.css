@@ -113,6 +113,12 @@ main {
 
 .section.active {
     display: block;
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Hero Section */
@@ -192,6 +198,11 @@ main {
     color: white;
 }
 
+.btn-warning {
+    background-color: var(--warning-color);
+    color: white;
+}
+
 /* Chess Preview */
 .hero-image {
     display: flex;
@@ -205,15 +216,6 @@ main {
 
 .preview-board {
     display: grid;
-    grid-template-areas: 
-        "a8 b8 c8 d8 e8 f8 g8 h8"
-        "a7 b7 c7 d7 e7 f7 g7 h7"
-        "a6 b6 c6 d6 e6 f6 g6 h6"
-        "a5 b5 c5 d5 e5 f5 g5 h5"
-        "a4 b4 c4 d4 e4 f4 g4 h4"
-        "a3 b3 c3 d3 e3 f3 g3 h3"
-        "a2 b2 c2 d2 e2 f2 g2 h2"
-        "a1 b1 c1 d1 e1 f1 g1 h1";
     grid-template-columns: repeat(8, 50px);
     grid-template-rows: repeat(8, 50px);
     gap: 0;
@@ -328,6 +330,11 @@ main {
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
+.form-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 0.5rem;
+}
+
 .custom-time {
     display: flex;
     gap: 10px;
@@ -386,15 +393,27 @@ main {
     color: var(--text-color);
 }
 
+/* FIX: Improved Chess Board Layout with Even Spacing */
 .game-board {
     display: flex;
     justify-content: center;
+    align-items: center;
     margin-bottom: 2rem;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    /* Ensure the board maintains aspect ratio with even spacing */
+    padding: 1rem;
 }
 
 #chess-board {
-    width: 500px;
-    height: 500px;
+    width: 100%;
+    height: auto;
+    max-width: min(600px, 90vw);
+    aspect-ratio: 1;
+    /* Center the board within its container */
+    margin: 0 auto;
 }
 
 .game-controls {
@@ -435,16 +454,116 @@ main {
     font-size: 1.2rem;
 }
 
+/* Move History Controls */
+.move-controls {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+    background: #333;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.move-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 4px;
+}
+
+.move-btn:hover {
+    color: var(--secondary-color);
+    background: rgba(52, 152, 219, 0.1);
+}
+
 .move-list {
     padding: 1.5rem;
     max-height: 300px;
     overflow-y: auto;
 }
 
+.move-pair {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr;
+    gap: 10px;
+    padding: 8px;
+    margin-bottom: 5px;
+    background: #333;
+    border-radius: 5px;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.move-pair:hover {
+    background: #3a3a3a;
+}
+
+.move-number {
+    color: var(--secondary-color);
+    font-weight: bold;
+}
+
+.white-move, .black-move {
+    color: var(--text-color);
+    font-family: monospace;
+    position: relative;
+}
+
+.white-move.highlight, .black-move.highlight {
+    background: rgba(52, 152, 219, 0.3);
+    border-radius: 3px;
+}
+
+.move-classification {
+    position: absolute;
+    top: -20px;
+    right: 0;
+    background: var(--secondary-color);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    z-index: 10;
+    display: none;
+}
+
+.move-classification.show {
+    display: block;
+}
+
 .no-moves {
     text-align: center;
     color: var(--text-secondary);
     padding: 2rem;
+}
+
+/* Time Display */
+.time-display {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 0.8rem;
+    background: #333;
+    border-radius: 8px;
+}
+
+.player-time, .ai-time {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.time-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.time-value {
+    font-weight: bold;
+    font-size: 1.1rem;
 }
 
 /* Chat Panel */
@@ -466,6 +585,12 @@ main {
 .chat-message {
     display: flex;
     gap: 1rem;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
 .message-avatar {
@@ -484,12 +609,22 @@ main {
     color: white;
 }
 
+.user-avatar {
+    background: var(--success-color);
+    color: white;
+}
+
 .message-content {
     flex: 1;
     background: #333;
     padding: 1rem;
     border-radius: 10px;
     border-top-left-radius: 0;
+}
+
+.user .message-content {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 0;
 }
 
 .chat-input-area {
@@ -521,6 +656,93 @@ main {
 
 .send-btn:hover {
     background: #2980b9;
+}
+
+/* Puzzle Section */
+.puzzle-container {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.puzzle-board-container {
+    background: var(--card-background);
+    border-radius: 15px;
+    padding: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.puzzle-info-panel {
+    background: var(--card-background);
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.puzzle-info-content {
+    padding: 1.5rem;
+}
+
+.puzzle-category, .puzzle-difficulty, .puzzle-hint {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    padding: 0.8rem;
+    background: #333;
+    border-radius: 8px;
+}
+
+.info-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.puzzle-controls {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.puzzle-stats {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.puzzle-stat {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+    padding: 0.5rem;
+    background: #333;
+    border-radius: 5px;
+}
+
+/* FIX: Responsive Puzzle Board with Even Spacing */
+.puzzle-board {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+    /* Ensure the board maintains aspect ratio with even spacing */
+    padding: 1rem;
+}
+
+#puzzle-board {
+    width: 100%;
+    height: auto;
+    max-width: min(500px, 90vw);
+    aspect-ratio: 1;
+    /* Center the board within its container */
+    margin: 0 auto;
 }
 
 /* Stats Section */
@@ -564,6 +786,288 @@ main {
     color: var(--text-color);
 }
 
+/* Game Analysis Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+}
+
+.modal-content {
+    background-color: var(--card-background);
+    margin: 5% auto;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    width: 80%;
+    max-width: 800px;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 2px solid var(--secondary-color);
+}
+
+.modal-header h2 {
+    color: var(--secondary-color);
+    margin: 0;
+}
+
+.close {
+    color: var(--text-secondary);
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: var(--text-color);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.analysis-summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.analysis-stat {
+    background: #333;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.move-analysis {
+    margin-bottom: 2rem;
+}
+
+.move-analysis h3 {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+.move-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.move-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #333;
+    padding: 0.8rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.move-stat:hover {
+    background: #3a3a3a;
+}
+
+.brilliant-icon { color: #9c27b0; }
+.best-icon { color: #2196f3; }
+.good-icon { color: #4caf50; }
+.mistake-icon { color: #ff9800; }
+.blunder-icon { color: #f44336; }
+
+.analysis-chart {
+    height: 200px;
+    background: #333;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Notification */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--secondary-color);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    z-index: 3000;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+/* Chess Pieces Fix */
+#chess-board, #puzzle-board {
+    font-family: "Segoe UI Symbol", "Symbola", "DejaVu Sans", "Arial Unicode MS", sans-serif !important;
+}
+
+.piece {
+    font-size: 48px !important;
+    line-height: 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+    text-align: center !important;
+}
+
+/* Move Classification Tooltip */
+.move-tooltip {
+    position: absolute;
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    z-index: 1000;
+    display: none;
+    box-shadow: var(--shadow-lg);
+    max-width: 300px;
+}
+
+.move-tooltip.show {
+    display: block;
+}
+
+.move-tooltip h4 {
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+}
+
+.move-tooltip p {
+    color: var(--text-color);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* FIX: Chess Board Highlighting for Click-to-Move */
+/* Use chessboard.js built-in highlighting classes */
+.highlight-white {
+    box-shadow: inset 0 0 3px 3px yellow;
+}
+
+.highlight-black {
+    box-shadow: inset 0 0 3px 3px yellow;
+}
+
+/* NEW: Import Game Modal */
+.import-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+}
+
+.import-content {
+    background-color: var(--card-background);
+    margin: 5% auto;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    width: 80%;
+    max-width: 600px;
+    box-shadow: var(--shadow-lg);
+}
+
+.import-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 2px solid var(--secondary-color);
+}
+
+.import-header h2 {
+    color: var(--secondary-color);
+    margin: 0;
+}
+
+.close-import {
+    color: var(--text-secondary);
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-import:hover {
+    color: var(--text-color);
+}
+
+.import-body {
+    padding: 1.5rem;
+}
+
+.import-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.import-option {
+    background: #333;
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.import-option:hover {
+    background: #3a3a3a;
+}
+
+.import-option i {
+    font-size: 1.5rem;
+    color: var(--secondary-color);
+}
+
+.import-textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 1rem;
+    background: #333;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-family: monospace;
+    font-size: 0.9rem;
+    resize: vertical;
+    display: none;
+}
+
+.import-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
     .hero {
@@ -576,6 +1080,14 @@ main {
     }
     
     .settings-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .puzzle-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .analysis-summary {
         grid-template-columns: 1fr;
     }
 }
@@ -602,12 +1114,6 @@ main {
         font-size: 20px;
     }
     
-    #chess-board {
-        width: 100%;
-        max-width: 400px;
-        height: 400px;
-    }
-    
     .hero-buttons {
         flex-direction: column;
         align-items: center;
@@ -617,6 +1123,10 @@ main {
         width: 100%;
         max-width: 300px;
         justify-content: center;
+    }
+    
+    .modal-content {
+        width: 95%;
     }
 }
 
@@ -643,5 +1153,9 @@ main {
     
     .btn {
         width: 100%;
+    }
+    
+    .move-stats {
+        grid-template-columns: 1fr;
     }
 }
