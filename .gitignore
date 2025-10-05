@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+ai_brain.json
+.env
+.venv/
+venv/
+# Local Netlify folder
+.netlify
