@@ -5,20 +5,32 @@ document.addEventListener('DOMContentLoaded', function() {
     // API Configuration - Now uses a relative path since the API and frontend are on the same server.
     const API_URL = '/api';
     
+    // --- UTILITY FUNCTION ---
+    // A helper function to safely get an element by ID
+    function safeGetElementById(id) {
+        const element = document.getElementById(id);
+        if (!element) {
+            console.warn(`Warning: Element with ID '#${id}' was not found.`);
+        }
+        return element;
+    }
+    
     // Mobile menu toggle
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');
     
-    hamburger.addEventListener('click', () => {
-        hamburger.classList.toggle('active');
-        navMenu.classList.toggle('active');
-    });
+    if (hamburger && navMenu) {
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+    }
     
     // Close mobile menu when clicking on a link
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', () => {
-            hamburger.classList.remove('active');
-            navMenu.classList.remove('active');
+            if (hamburger) hamburger.classList.remove('active');
+            if (navMenu) navMenu.classList.remove('active');
         });
     });
     
@@ -81,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let adaptiveDifficultyEnabled = true;
     let playerPerformanceHistory = [];
     
-    // Time control variables
+    // Time control variables (DISABLED for simplified HTML)
     let timeControl = null;
     let playerTime = 0;
     let aiTime = 0;
@@ -170,12 +182,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Determine player color
-        const colorSelect = document.getElementById('color-select');
-        if (colorSelect.value === 'random') {
-            playerColor = Math.random() < 0.5 ? 'white' : 'black';
-        } else {
-            playerColor = colorSelect.value;
+        const colorSelect = safeGetElementById('color-select');
+        if (colorSelect) {
+            if (colorSelect.value === 'random') {
+                playerColor = Math.random() < 0.5 ? 'white' : 'black';
+            } else {
+                playerColor = colorSelect.value;
+            }
         }
         
         // Initialize game
@@ -220,12 +233,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // If player is black, make AI move first
         if (playerColor === 'black') {
             setTimeout(makeAIMove, 500);
-        }
-        
-        // Start timer if time control is set
-        const timeControlValue = document.getElementById('time-control-select').value;
-        if (timeControlValue !== 'none') {
-            startTimeControl(timeControlValue);
         }
         
         // Initial board sizing
@@ -381,7 +388,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Check if the move is correct
         if (move.san === currentPuzzle.solution) {
-            document.getElementById('puzzle-status').textContent = 'Correct! Well done!';
+            const puzzleStatusEl = document.getElementById('puzzle-status');
+            if (puzzleStatusEl) puzzleStatusEl.textContent = 'Correct! Well done!';
             puzzlesSolved++;
             currentStreak++;
             if (currentStreak > bestStreak) {
@@ -392,7 +400,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 loadNextPuzzle();
             }, 2000);
         } else {
-            document.getElementById('puzzle-status').textContent = 'Not quite right. Try again!';
+            const puzzleStatusEl = document.getElementById('puzzle-status');
+            if (puzzleStatusEl) puzzleStatusEl.textContent = 'Not quite right. Try again!';
             puzzleGame.undo();
         }
         
@@ -515,10 +524,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!moveAnalysis[moveIndex]) return;
         
         const classification = moveAnalysis[moveIndex];
-        const tooltip = document.getElementById('move-tooltip');
-        const tooltipTitle = document.getElementById('tooltip-title');
-        const tooltipContent = document.getElementById('tooltip-content');
+        const tooltip = safeGetElementById('move-tooltip');
+        const tooltipTitle = safeGetElementById('tooltip-title');
+        const tooltipContent = safeGetElementById('tooltip-content');
         
+        if (!tooltip || !tooltipTitle || !tooltipContent) return;
+
         // Set tooltip content
         tooltipTitle.textContent = classification.type.charAt(0).toUpperCase() + classification.type.slice(1);
         tooltipContent.textContent = classification.explanation || 'This move was classified as ' + classification.type;
@@ -536,7 +547,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Hide tooltip after 3 seconds
         setTimeout(() => {
-            tooltip.classList.remove('show');
+            if(tooltip) tooltip.classList.remove('show');
         }, 3000);
     }
     
@@ -572,7 +583,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function togglePlayMoves() {
-        const playBtn = document.getElementById('play-pause-btn');
+        const playBtn = safeGetElementById('play-pause-btn');
+        if (!playBtn) return;
         
         if (isPlayingMoves) {
             clearInterval(playInterval);
@@ -592,86 +604,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Time control functions
-    function startTimeControl(timeControlValue) {
-        // Parse time control value
-        const parts = timeControlValue.split('-');
-        const minutes = parseInt(parts[1]);
-        const increment = parts.length > 2 ? parseInt(parts[2]) : 0;
-        
-        // Set initial times
-        playerTime = minutes * 60;
-        aiTime = minutes * 60;
-        
-        // Update display
-        updateTimeDisplay();
-        
-        // Clear any existing interval
-        if (timeInterval) clearInterval(timeInterval);
-        
-        // Start timer
-        timeInterval = setInterval(() => {
-            const currentPlayer = playerColor === 'white' ? 'w' : 'b';
-            const currentAI = playerColor === 'white' ? 'b' : 'w';
-            
-            if (game.turn() === currentPlayer) {
-                playerTime -= 1;
-            } else if (game.turn() === currentAI) {
-                aiTime -= 1;
-            }
-            
-            updateTimeDisplay();
-            
-            // Check for timeout
-            if (playerTime <= 0) {
-                clearInterval(timeInterval);
-                alert('Time out! You lose on time.');
-                gamesPlayed++;
-                gamesLost++;
-                teachAI('ai_win');
-                newGame();
-            } else if (aiTime <= 0) {
-                clearInterval(timeInterval);
-                alert('Time out! AI loses on time. You win!');
-                gamesPlayed++;
-                gamesWon++;
-                teachAI('player_win');
-                newGame();
-            }
-            
-            // Add increment after move
-            if (increment > 0 && game.history().length > 0) {
-                const lastMove = game.history()[game.history().length - 1];
-                if (lastMove) {
-                    if (game.turn() === currentPlayer) {
-                        aiTime += increment;
-                    } else {
-                        playerTime += increment;
-                    }
-                }
-            }
-        }, 1000);
-    }
-    
-    function updateTimeDisplay() {
-        const playerTimeEl = document.getElementById('player-time');
-        const aiTimeEl = document.getElementById('ai-time');
-        
-        if (playerTimeEl) {
-            playerTimeEl.textContent = formatTime(playerTime);
-        }
-        
-        if (aiTimeEl) {
-            aiTimeEl.textContent = formatTime(aiTime);
-        }
-    }
-    
-    function formatTime(seconds) {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-    }
-    
     // Puzzle functions
     function loadNextPuzzle() {
         // Try to get puzzle from AI brain first
@@ -682,10 +614,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     puzzleGame.load(puzzle.fen);
                     puzzleBoard.position(puzzle.fen);
                     
-                    document.getElementById('puzzle-status').textContent = 'Solve this puzzle';
-                    document.getElementById('puzzle-category').textContent = puzzle.category || 'Tactics';
-                    document.getElementById('puzzle-difficulty').textContent = puzzle.difficulty || 'Medium';
-                    document.getElementById('puzzle-hint').style.display = 'none';
+                    const puzzleStatusEl = document.getElementById('puzzle-status');
+                    if (puzzleStatusEl) puzzleStatusEl.textContent = 'Solve this puzzle';
+                    
+                    const puzzleCategoryEl = document.getElementById('puzzle-category');
+                    if (puzzleCategoryEl) puzzleCategoryEl.textContent = puzzle.category || 'Tactics';
+                    
+                    const puzzleDifficultyEl = document.getElementById('puzzle-difficulty');
+                    if (puzzleDifficultyEl) puzzleDifficultyEl.textContent = puzzle.difficulty || 'Medium';
+                    
+                    const puzzleHintEl = document.getElementById('puzzle-hint');
+                    if (puzzleHintEl) puzzleHintEl.style.display = 'none';
                 } else {
                     // Fallback to predefined puzzles
                     loadPredefinedPuzzle();
@@ -701,13 +640,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to get puzzles from AI brain
     async function getPuzzleFromAI() {
         try {
+            const difficultySelect = safeGetElementById('difficulty-select');
+            const difficulty = difficultySelect ? difficultySelect.value : 'intermediate';
+
             const response = await fetch(`${API_URL}/puzzle`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    difficulty: document.getElementById('difficulty-select').value,
+                    difficulty: difficulty,
                     category: 'mixed',
                     fromHistory: true // Try to get puzzles from game history
                 })
@@ -756,23 +698,40 @@ document.addEventListener('DOMContentLoaded', function() {
         puzzleGame.load(currentPuzzle.fen);
         puzzleBoard.position(puzzleGame.fen());
         
-        document.getElementById('puzzle-status').textContent = 'Solve this puzzle';
-        document.getElementById('puzzle-category').textContent = currentPuzzle.category;
-        document.getElementById('puzzle-difficulty').textContent = currentPuzzle.difficulty;
-        document.getElementById('puzzle-hint').style.display = 'none';
+        const puzzleStatusEl = document.getElementById('puzzle-status');
+        if (puzzleStatusEl) puzzleStatusEl.textContent = 'Solve this puzzle';
+        
+        const puzzleCategoryEl = document.getElementById('puzzle-category');
+        if (puzzleCategoryEl) puzzleCategoryEl.textContent = currentPuzzle.category;
+        
+        const puzzleDifficultyEl = document.getElementById('puzzle-difficulty');
+        if (puzzleDifficultyEl) puzzleDifficultyEl.textContent = currentPuzzle.difficulty;
+        
+        const puzzleHintEl = document.getElementById('puzzle-hint');
+        if (puzzleHintEl) puzzleHintEl.style.display = 'none';
     }
     
     function showPuzzleHint() {
         if (!currentPuzzle) return;
         
-        document.getElementById('puzzle-hint').style.display = 'flex';
-        document.getElementById('puzzle-hint-text').textContent = currentPuzzle.hint;
+        const puzzleHintEl = document.getElementById('puzzle-hint');
+        const puzzleHintTextEl = document.getElementById('puzzle-hint-text');
+        
+        if (puzzleHintEl && puzzleHintTextEl) {
+            puzzleHintEl.style.display = 'flex';
+            puzzleHintTextEl.textContent = currentPuzzle.hint;
+        }
     }
     
     function updatePuzzleStats() {
-        document.getElementById('puzzles-solved').textContent = puzzlesSolved;
-        document.getElementById('puzzle-streak').textContent = currentStreak;
-        document.getElementById('best-streak').textContent = bestStreak;
+        const puzzlesSolvedEl = document.getElementById('puzzles-solved');
+        if (puzzlesSolvedEl) puzzlesSolvedEl.textContent = puzzlesSolved;
+        
+        const currentStreakEl = document.getElementById('puzzle-streak');
+        if (currentStreakEl) currentStreakEl.textContent = currentStreak;
+        
+        const bestStreakEl = document.getElementById('best-streak');
+        if (bestStreakEl) bestStreakEl.textContent = bestStreak;
         
         // Save to localStorage
         localStorage.setItem('puzzlesSolved', puzzlesSolved);
@@ -785,9 +744,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Get current ELO ratings
         const playerElo = parseInt(localStorage.getItem('playerElo') || '1200');
-        const aiElo = parseInt(document.getElementById('difficulty-select').value === 'beginner' ? '800' : 
-                             document.getElementById('difficulty-select').value === 'intermediate' ? '1200' : 
-                             document.getElementById('difficulty-select').value === 'advanced' ? '1600' : '2000');
+        const difficultySelect = safeGetElementById('difficulty-select');
+        const difficulty = difficultySelect ? difficultySelect.value : 'intermediate';
+        const aiElo = parseInt(difficulty === 'beginner' ? '800' : difficulty === 'intermediate' ? '1200' : difficulty === 'advanced' ? '1600' : '2000');
         
         try {
             // Send game to AI for analysis
@@ -802,7 +761,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         result: game.in_checkmate() ? (game.turn() === 'w' ? 'Black wins' : 'White wins') : 
                                game.in_draw() ? 'Draw' : 'Ongoing',
                         playerColor: playerColor,
-                        difficulty: document.getElementById('difficulty-select').value
+                        difficulty: difficulty
                     }
                 })
             });
@@ -965,62 +924,73 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to show analysis modal for imported games
     function showImportedAnalysisModal() {
-        // Update modal title
-        document.querySelector('#game-analysis-modal .modal-header h2').innerHTML = '<i class="fas fa-file-import"></i> Imported Game Analysis';
+        const modalHeader = document.querySelector('#game-analysis-modal .modal-header h2');
+        if (modalHeader) modalHeader.innerHTML = '<i class="fas fa-file-import"></i> Imported Game Analysis';
         
         // Update modal content with imported game analysis
-        document.getElementById('game-result').textContent = importedGameAnalysis.result;
-        document.getElementById('player-accuracy').textContent = importedGameAnalysis.playerAccuracy + '%';
-        document.getElementById('player-elo').textContent = 'N/A (Imported Game)';
-        document.getElementById('ai-elo').textContent = 'N/A (Imported Game)';
+        const gameResultEl = safeGetElementById('game-result');
+        if (gameResultEl) gameResultEl.textContent = importedGameAnalysis.result;
         
-        document.getElementById('brilliant-count').textContent = importedGameAnalysis.moveClassifications.brilliant;
-        document.getElementById('best-count').textContent = importedGameAnalysis.moveClassifications.best;
-        document.getElementById('good-count').textContent = importedGameAnalysis.moveClassifications.good;
-        document.getElementById('mistake-count').textContent = importedGameAnalysis.moveClassifications.mistake;
-        document.getElementById('blunder-count').textContent = importedGameAnalysis.moveClassifications.blunder;
+        const playerAccuracyEl = safeGetElementById('player-accuracy');
+        if (playerAccuracyEl) playerAccuracyEl.textContent = importedGameAnalysis.playerAccuracy + '%';
         
-        // Add a note that AI won't learn from this game
-        const note = document.createElement('p');
-        note.textContent = 'Note: The AI will not learn from this imported game.';
-        note.style.color = 'var(--warning-color)';
-        note.style.marginTop = '1rem';
-        note.style.fontStyle = 'italic';
+        const playerEloEl = safeGetElementById('player-elo');
+        if (playerEloEl) playerEloEl.textContent = 'N/A (Imported Game)';
         
-        // Remove any existing note
-        const existingNote = document.querySelector('#game-analysis-modal .import-note');
-        if (existingNote) {
-            existingNote.remove();
-        }
+        const aiEloEl = safeGetElementById('ai-elo');
+        if (aiEloEl) aiEloEl.textContent = 'N/A (Imported Game)';
         
-        // Add the note to the modal
-        note.className = 'import-note';
-        document.querySelector('#game-analysis-modal .modal-body').appendChild(note);
+        const brilliantCountEl = safeGetElementById('brilliant-count');
+        if (brilliantCountEl) brilliantCountEl.textContent = importedGameAnalysis.moveClassifications.brilliant;
+
+        const bestCountEl = safeGetElementById('best-count');
+        if (bestCountEl) bestCountEl.textContent = importedGameAnalysis.moveClassifications.best;
+
+        const goodCountEl = safeGetElementById('good-count');
+        if (goodCountEl) goodCountEl.textContent = importedGameAnalysis.moveClassifications.good;
+
+        const mistakeCountEl = safeGetElementById('mistake-count');
+        if (mistakeCountEl) mistakeCountEl.textContent = importedGameAnalysis.moveClassifications.mistake;
+
+        const blunderCountEl = safeGetElementById('blunder-count');
+        if (blunderCountEl) blunderCountEl.textContent = importedGameAnalysis.moveClassifications.blunder;
         
         // Show the modal
-        document.getElementById('game-analysis-modal').style.display = 'block';
+        const modalEl = document.getElementById('game-analysis-modal');
+        if (modalEl) modalEl.style.display = 'block';
     }
     
     function showAnalysisModal() {
         // Reset modal title in case it was changed for imported game
-        document.querySelector('#game-analysis-modal .modal-header h2').innerHTML = '<i class="fas fa-chart-line"></i> Game Analysis';
+        const modalHeader = document.querySelector('#game-analysis-modal .modal-header h2');
+        if (modalHeader) modalHeader.innerHTML = '<i class="fas fa-chart-line"></i> Game Analysis';
         
-        // Remove any existing import note
-        const existingNote = document.querySelector('#game-analysis-modal .import-note');
-        if (existingNote) {
-            existingNote.remove();
-        }
+        const gameResultEl = safeGetElementById('game-result');
+        if (gameResultEl) gameResultEl.textContent = gameAnalysis.result;
         
-        document.getElementById('game-result').textContent = gameAnalysis.result;
-        document.getElementById('player-accuracy').textContent = gameAnalysis.playerAccuracy + '%';
-        document.getElementById('player-elo').textContent = gameAnalysis.playerElo + ' → ' + gameAnalysis.newPlayerElo;
-        document.getElementById('ai-elo').textContent = gameAnalysis.aiElo;
+        const playerAccuracyEl = safeGetElementById('player-accuracy');
+        if (playerAccuracyEl) playerAccuracyEl.textContent = gameAnalysis.playerAccuracy + '%';
         
-        document.getElementById('brilliant-count').textContent = gameAnalysis.moveClassifications.brilliant;
-        document.getElementById('best-count').textContent = gameAnalysis.moveClassifications.best;
-        document.getElementById('good-count').textContent = gameAnalysis.moveClassifications.good;
-        document.getElementById('mistake-count').textContent = gameAnalysis.moveClassifications.mistake;
-        document.getElementById('blunder-count').textContent = gameAnalysis.moveClassifications.blunder;
+        const playerEloEl = safeGetElementById('player-elo');
+        if (playerEloEl) playerEloEl.textContent = gameAnalysis.playerElo + ' → ' + gameAnalysis.newPlayerElo;
+        
+        const aiEloEl = safeGetElementById('ai-elo');
+        if (aiEloEl) aiEloEl.textContent = gameAnalysis.aiElo;
+        
+        const brilliantCountEl = safeGetElementById('brilliant-count');
+        if (brilliantCountEl) brilliantCountEl.textContent = gameAnalysis.moveClassifications.brilliant;
+
+        const bestCountEl = safeGetElementById('best-count');
+        if (bestCountEl) bestCountEl.textContent = gameAnalysis.moveClassifications.best;
+
+        const goodCountEl = safeGetElementById('good-count');
+        if (goodCountEl) goodCountEl.textContent = gameAnalysis.moveClassifications.good;
+
+        const mistakeCountEl = safeGetElementById('mistake-count');
+        if (mistakeCountEl) mistakeCountEl.textContent = gameAnalysis.moveClassifications.mistake;
+
+        const blunderCountEl = safeGetElementById('blunder-count');
+        if (blunderCountEl) blunderCountEl.textContent = gameAnalysis.moveClassifications.blunder;
         
         // Add click listeners to move classification stats
         document.querySelectorAll('.move-stat').forEach(statEl => {
@@ -1033,7 +1003,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Draw accuracy chart
         drawAccuracyChart();
         
-        document.getElementById('game-analysis-modal').style.display = 'block';
+        const modalEl = document.getElementById('game-analysis-modal');
+        if (modalEl) modalEl.style.display = 'block';
     }
     
     function showMovesByClassification(type) {
@@ -1072,7 +1043,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function closeAnalysisModal() {
-        document.getElementById('game-analysis-modal').style.display = 'none';
+        const modalEl = document.getElementById('game-analysis-modal');
+        if (modalEl) modalEl.style.display = 'none';
     }
     
     function downloadAnalysis() {
@@ -1114,7 +1086,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function drawAccuracyChart() {
         // This would normally use a charting library like Chart.js
         // For now, we'll just create a simple representation
-        const canvas = document.getElementById('accuracy-chart');
+        const canvas = safeGetElementById('accuracy-chart');
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
         
         // Set canvas size
@@ -1174,7 +1147,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateAdaptiveDifficulty() {
         if (!adaptiveDifficultyEnabled) return;
         
-        const difficultySelect = document.getElementById('difficulty-select');
+        const difficultySelect = safeGetElementById('difficulty-select');
+        if (!difficultySelect) return;
         const currentDifficulty = difficultySelect.value;
         const accuracy = gameAnalysis.playerAccuracy;
         
@@ -1245,7 +1219,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (savedGamesPlayed) {
             gamesPlayed = parseInt(savedGamesPlayed);
-            document.getElementById('games-played').textContent = gamesPlayed;
+            const gamesPlayedEl = document.getElementById('games-played');
+            if (gamesPlayedEl) gamesPlayedEl.textContent = gamesPlayed;
         }
         if (savedGamesWon) gamesWon = parseInt(savedGamesWon);
         if (savedGamesLost) gamesLost = parseInt(savedGamesLost);
@@ -1254,33 +1229,45 @@ document.addEventListener('DOMContentLoaded', function() {
         // Calculate and display win rate
         if (gamesPlayed > 0) {
             const winRate = Math.round((gamesWon / gamesPlayed) * 100);
-            document.getElementById('win-rate').textContent = winRate + '%';
+            const winRateEl = document.getElementById('win-rate');
+            if (winRateEl) winRateEl.textContent = winRate + '%';
         }
         
-        if (savedRating) document.getElementById('rating').textContent = savedRating;
-        if (savedLearningScore) document.getElementById('learning-score').textContent = savedLearningScore;
+        const ratingEl = document.getElementById('rating');
+        if (savedRating && ratingEl) ratingEl.textContent = savedRating;
+        
+        const learningScoreEl = document.getElementById('learning-score');
+        if (savedLearningScore && learningScoreEl) learningScoreEl.textContent = savedLearningScore;
     }
     
     function updateStats() {
         // Update games played
-        document.getElementById('games-played').textContent = gamesPlayed;
-        localStorage.setItem('gamesPlayed', gamesPlayed);
+        const gamesPlayedEl = document.getElementById('games-played');
+        if (gamesPlayedEl) {
+            gamesPlayedEl.textContent = gamesPlayed;
+            localStorage.setItem('gamesPlayed', gamesPlayed);
+        }
         
         // Update win rate
         if (gamesPlayed > 0) {
             const winRate = Math.round((gamesWon / gamesPlayed) * 100);
-            document.getElementById('win-rate').textContent = winRate + '%';
-            localStorage.setItem('gamesWon', gamesWon);
-            localStorage.setItem('gamesLost', gamesLost);
-            localStorage.setItem('gamesDrawn', gamesDrawn);
+            const winRateEl = document.getElementById('win-rate');
+            if (winRateEl) {
+                winRateEl.textContent = winRate + '%';
+                localStorage.setItem('gamesWon', gamesWon);
+                localStorage.setItem('gamesLost', gamesLost);
+                localStorage.setItem('gamesDrawn', gamesDrawn);
+            }
         }
         
         // Update learning score
         const learningScoreEl = document.getElementById('learning-score');
-        let learningScore = parseInt(learningScoreEl.textContent);
-        learningScore += Math.floor(gameAnalysis.playerAccuracy / 10);
-        learningScoreEl.textContent = learningScore;
-        localStorage.setItem('learningScore', learningScore);
+        if (learningScoreEl && gameAnalysis) {
+            let learningScore = parseInt(learningScoreEl.textContent);
+            learningScore += Math.floor(gameAnalysis.playerAccuracy / 10);
+            learningScoreEl.textContent = learningScore;
+            localStorage.setItem('learningScore', learningScore);
+        }
     }
     
     // AI Move Function - Now uses your AI backend!
@@ -1290,6 +1277,9 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Getting AI move from backend...');
         
         try {
+            const personalitySelect = safeGetElementById('personality-select');
+            const difficultySelect = safeGetElementById('difficulty-select');
+            
             const response = await fetch(`${API_URL}/game/move`, {
                 method: 'POST',
                 headers: {
@@ -1297,8 +1287,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     fen: game.fen(),
-                    personality: document.getElementById('personality-select').value,
-                    difficulty: document.getElementById('difficulty-select').value
+                    personality: personalitySelect ? personalitySelect.value : 'balanced',
+                    difficulty: difficultySelect ? difficultySelect.value : 'intermediate'
                 })
             });
             
@@ -1359,6 +1349,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Teaching AI - Game result:', result);
         
         try {
+            const difficultySelect = safeGetElementById('difficulty-select');
             const response = await fetch(`${API_URL}/learn`, {
                 method: 'POST',
                 headers: {
@@ -1370,7 +1361,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         moves: game.history(),
                         result: result,
                         playerColor: playerColor,
-                        difficulty: document.getElementById('difficulty-select').value
+                        difficulty: difficultySelect ? difficultySelect.value : 'intermediate'
                     }
                 })
             });
@@ -1407,11 +1398,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Determine player color for new game
-            const colorSelect = document.getElementById('color-select');
-            if (colorSelect.value === 'random') {
-                playerColor = Math.random() < 0.5 ? 'white' : 'black';
-            } else {
-                playerColor = colorSelect.value;
+            const colorSelect = safeGetElementById('color-select');
+            if (colorSelect) {
+                if (colorSelect.value === 'random') {
+                    playerColor = Math.random() < 0.5 ? 'white' : 'black';
+                } else {
+                    playerColor = colorSelect.value;
+                }
             }
             
             // Update board orientation when starting a new game
@@ -1425,21 +1418,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (playerColor === 'black') {
                 setTimeout(makeAIMove, 500);
             }
-            
-            // Start timer if time control is set
-            const timeControlValue = document.getElementById('time-control-select').value;
-            if (timeControlValue !== 'none') {
-                startTimeControl(timeControlValue);
-            }
         } else {
             initializeChessBoard();
         }
     }
     
     // Chat functionality - Connected to AI
-    const chatInput = document.getElementById('chat-input');
-    const sendChatBtn = document.getElementById('send-chat-btn');
-    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = safeGetElementById('chat-input');
+    const sendChatBtn = safeGetElementById('send-chat-btn');
+    const chatMessages = safeGetElementById('chat-messages');
     
     function addChatMessage(message, isUser = false) {
         if (!chatMessages) return;
@@ -1506,15 +1493,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Import Game Functions
     function showImportModal() {
-        document.getElementById('import-modal').style.display = 'block';
+        const modalEl = document.getElementById('import-modal');
+        if (modalEl) modalEl.style.display = 'block';
     }
     
     function closeImportModal() {
-        document.getElementById('import-modal').style.display = 'none';
+        const modalEl = document.getElementById('import-modal');
+        if (modalEl) modalEl.style.display = 'none';
         // Reset import form
-        document.getElementById('import-textarea').value = '';
-        document.getElementById('import-textarea').style.display = 'none';
-        document.getElementById('analyze-imported-btn').disabled = true;
+        const textareaEl = document.getElementById('import-textarea');
+        if (textareaEl) {
+            textareaEl.value = '';
+            textareaEl.style.display = 'none';
+        }
+        const analyzeBtn = document.getElementById('analyze-imported-btn');
+        if (analyzeBtn) analyzeBtn.disabled = true;
         importType = null;
     }
     
@@ -1529,29 +1522,28 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Show appropriate input method
         const textarea = document.getElementById('import-textarea');
-        const fileInput = document.getElementById('import-file-input');
         
         if (option.id === 'import-pgn-option') {
             importType = 'pgn';
-            textarea.placeholder = 'Paste your PGN (Portable Game Notation) here...';
-            textarea.style.display = 'block';
-            fileInput.style.display = 'none';
+            if (textarea) {
+                textarea.placeholder = 'Paste your PGN (Portable Game Notation) here...';
+                textarea.style.display = 'block';
+            }
         } else if (option.id === 'import-fen-option') {
             importType = 'fen';
-            textarea.placeholder = 'Paste your FEN (Forsyth-Edwards Notation) here...';
-            textarea.style.display = 'block';
-            fileInput.style.display = 'none';
+            if (textarea) {
+                textarea.placeholder = 'Paste your FEN (Forsyth-Edwards Notation) here...';
+                textarea.style.display = 'block';
+            }
         } else if (option.id === 'import-file-option') {
             importType = 'file';
-            textarea.style.display = 'none';
-            fileInput.style.display = 'block';
-            fileInput.click();
+            if (textarea) textarea.style.display = 'none';
+            showNotification('File import is not available in this version. Please paste your PGN/FEN text.');
         }
     }
     
     function processImportedData() {
         const textarea = document.getElementById('import-textarea');
-        const fileInput = document.getElementById('import-file-input');
         
         if (importType === 'pgn') {
             const pgnText = textarea.value.trim();
@@ -1569,7 +1561,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Enable analyze button
-                document.getElementById('analyze-imported-btn').disabled = false;
+                const analyzeBtn = document.getElementById('analyze-imported-btn');
+                if (analyzeBtn) analyzeBtn.disabled = false;
                 showNotification('PGN loaded successfully. Click "Analyze Game" to continue.');
             } catch (error) {
                 alert('Error loading PGN: ' + error.message);
@@ -1590,45 +1583,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Enable analyze button
-                document.getElementById('analyze-imported-btn').disabled = false;
+                const analyzeBtn = document.getElementById('analyze-imported-btn');
+                if (analyzeBtn) analyzeBtn.disabled = false;
                 showNotification('FEN loaded successfully. Click "Analyze Game" to continue.');
             } catch (error) {
                 alert('Error loading FEN: ' + error.message);
             }
-        } else if (importType === 'file') {
-            const file = fileInput.files[0];
-            if (!file) {
-                alert('Please select a PGN file.');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    importedGame = new Chess();
-                    const pgnResult = importedGame.load_pgn(e.target.result);
-                    
-                    if (!pgnResult) {
-                        throw new Error('Invalid PGN format in file');
-                    }
-                    
-                    // Enable analyze button
-                    document.getElementById('analyze-imported-btn').disabled = false;
-                    showNotification('PGN file loaded successfully. Click "Analyze Game" to continue.');
-                } catch (error) {
-                    alert('Error loading PGN file: ' + error.message);
-                }
-            };
-            
-            reader.readAsText(file);
         }
     }
     
     // Event Listeners
     // Game controls
-    document.getElementById('new-game-btn').addEventListener('click', newGame);
+    const newGameBtn = safeGetElementById('new-game-btn');
+    if (newGameBtn) newGameBtn.addEventListener('click', newGame);
     
-    document.getElementById('resign-btn').addEventListener('click', function() {
+    const resignBtn = safeGetElementById('resign-btn');
+    if (resignBtn) resignBtn.addEventListener('click', function() {
         if (confirm('Are you sure you want to resign?')) {
             const winner = playerColor === 'white' ? 'Black' : 'White';
             alert(`${winner} wins by resignation!`);
@@ -1654,45 +1624,35 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Move history controls
-    document.getElementById('first-move-btn').addEventListener('click', () => goToMove(0));
-    document.getElementById('prev-move-btn').addEventListener('click', goToPreviousMove);
-    document.getElementById('play-pause-btn').addEventListener('click', togglePlayMoves);
-    document.getElementById('next-move-btn').addEventListener('click', goToNextMove);
-    document.getElementById('last-move-btn').addEventListener('click', () => goToMove(gameHistory.length));
+    const firstMoveBtn = safeGetElementById('first-move-btn');
+    if (firstMoveBtn) firstMoveBtn.addEventListener('click', () => goToMove(0));
+    
+    const prevMoveBtn = safeGetElementById('prev-move-btn');
+    if (prevMoveBtn) prevMoveBtn.addEventListener('click', goToPreviousMove);
+    
+    const playPauseBtn = safeGetElementById('play-pause-btn');
+    if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlayMoves);
+    
+    const nextMoveBtn = safeGetElementById('next-move-btn');
+    if (nextMoveBtn) nextMoveBtn.addEventListener('click', goToNextMove);
+    
+    const lastMoveBtn = safeGetElementById('last-move-btn');
+    if (lastMoveBtn) lastMoveBtn.addEventListener('click', () => goToMove(gameHistory.length));
     
     // Puzzle controls
-    document.getElementById('hint-btn').addEventListener('click', showPuzzleHint);
-    document.getElementById('next-puzzle-btn').addEventListener('click', loadNextPuzzle);
+    const hintBtn = safeGetElementById('hint-btn');
+    if (hintBtn) hintBtn.addEventListener('click', showPuzzleHint);
+    
+    const nextPuzzleBtn = safeGetElementById('next-puzzle-btn');
+    if (nextPuzzleBtn) nextPuzzleBtn.addEventListener('click', loadNextPuzzle);
     
     // Settings
-    document.getElementById('adaptive-difficulty').addEventListener('change', (e) => {
-        adaptiveDifficultyEnabled = e.target.checked;
-    });
-    
-    document.getElementById('time-control-select').addEventListener('change', function() {
-        if (game && boardInitialized) {
-            const timeControlValue = this.value;
-            if (timeControlValue !== 'none') {
-                startTimeControl(timeControlValue);
-            } else {
-                if (timeInterval) {
-                    clearInterval(timeInterval);
-                }
-            }
-        }
-    });
-    
-    // Add event listener for color change to flip board
-    document.getElementById('color-select').addEventListener('change', function() {
-        if (board && boardInitialized) {
-            const newColor = this.value === 'random' ? 
-                (Math.random() < 0.5 ? 'white' : 'black') : 
-                this.value;
-            
-            board.orientation(newColor);
-            playerColor = newColor;
-        }
-    });
+    const adaptiveDifficultyCheckbox = safeGetElementById('adaptive-difficulty');
+    if (adaptiveDifficultyCheckbox) {
+        adaptiveDifficultyCheckbox.addEventListener('change', (e) => {
+            adaptiveDifficultyEnabled = e.target.checked;
+        });
+    }
     
     // Chat
     if (sendChatBtn) {
@@ -1708,131 +1668,165 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Modal controls
-    document.querySelector('.close').addEventListener('click', closeAnalysisModal);
-    document.getElementById('close-analysis-btn').addEventListener('click', closeAnalysisModal);
-    document.getElementById('download-analysis-btn').addEventListener('click', downloadAnalysis);
+    const closeBtn = document.querySelector('.close');
+    if (closeBtn) closeBtn.addEventListener('click', closeAnalysisModal);
+    
+    const closeAnalysisBtn = safeGetElementById('close-analysis-btn');
+    if (closeAnalysisBtn) closeAnalysisBtn.addEventListener('click', closeAnalysisModal);
+    
+    const downloadAnalysisBtn = safeGetElementById('download-analysis-btn');
+    if (downloadAnalysisBtn) downloadAnalysisBtn.addEventListener('click', downloadAnalysis);
     
     // Import game modal controls
-    document.getElementById('import-game-btn').addEventListener('click', showImportModal);
-    document.querySelector('.close-import').addEventListener('click', closeImportModal);
-    document.getElementById('cancel-import-btn').addEventListener('click', closeImportModal);
+    const importGameBtn = safeGetElementById('import-game-btn');
+    if (importGameBtn) importGameBtn.addEventListener('click', showImportModal);
+    
+    const closeImportBtn = document.querySelector('.close-import');
+    if (closeImportBtn) closeImportBtn.addEventListener('click', closeImportModal);
+    
+    const cancelImportBtn = safeGetElementById('cancel-import-btn');
+    if (cancelImportBtn) cancelImportBtn.addEventListener('click', closeImportModal);
     
     // Import option handlers
-    document.getElementById('import-pgn-option').addEventListener('click', function() {
+    const importPgnOptionBtn = safeGetElementById('import-pgn-option');
+    if (importPgnOptionBtn) importPgnOptionBtn.addEventListener('click', function() {
         handleImportOption(this);
     });
     
-    document.getElementById('import-fen-option').addEventListener('click', function() {
+    const importFenOptionBtn = safeGetElementById('import-fen-option');
+    if (importFenOptionBtn) importFenOptionBtn.addEventListener('click', function() {
         handleImportOption(this);
     });
     
-    document.getElementById('import-file-option').addEventListener('click', function() {
+    const importFileOptionBtn = safeGetElementById('import-file-option');
+    if (importFileOptionBtn) importFileOptionBtn.addEventListener('click', function() {
         handleImportOption(this);
     });
     
     // Process imported data when textarea changes
-    document.getElementById('import-textarea').addEventListener('input', function() {
-        if (this.value.trim()) {
-            document.getElementById('analyze-imported-btn').disabled = false;
-        } else {
-            document.getElementById('analyze-imported-btn').disabled = true;
-        }
-    });
+    const importTextarea = document.getElementById('import-textarea');
+    if (importTextarea) {
+        importTextarea.addEventListener('input', function() {
+            const analyzeBtn = document.getElementById('analyze-imported-btn');
+            if (this.value.trim()) {
+                if (analyzeBtn) analyzeBtn.disabled = false;
+            } else {
+                if (analyzeBtn) analyzeBtn.disabled = true;
+            }
+        });
+    }
     
     // Analyze imported game
-    document.getElementById('analyze-imported-btn').addEventListener('click', function() {
-        if (!importedGame) {
-            processImportedData();
-        } else {
-            closeImportModal();
-            analyzeImportedGame();
-        }
-    });
+    const analyzeImportedBtn = safeGetElementById('analyze-imported-btn');
+    if (analyzeImportedBtn) {
+        analyzeImportedBtn.addEventListener('click', function() {
+            if (!importedGame) {
+                processImportedData();
+            } else {
+                closeImportModal();
+                analyzeImportedGame();
+            }
+        });
+    }
     
     // Tooltip close on click outside
     document.addEventListener('click', function(e) {
         const tooltip = document.getElementById('move-tooltip');
-        if (!tooltip.contains(e.target)) {
+        if (tooltip && !tooltip.contains(e.target)) {
             tooltip.classList.remove('show');
         }
     });
     
     // Start game button
-    document.getElementById('start-game-btn').addEventListener('click', function() {
-        console.log('Start game button clicked');
-        // Switch to game section
-        navLinks.forEach(l => l.classList.remove('active'));
-        sections.forEach(s => s.classList.remove('active'));
-        
-        document.querySelector('[href="#game"]').classList.add('active');
-        document.getElementById('game').classList.add('active');
-        
-        // Initialize board
-        setTimeout(initializeChessBoard, 100);
-    });
+    const startGameBtn = safeGetElementById('start-game-btn');
+    if (startGameBtn) {
+        startGameBtn.addEventListener('click', function() {
+            console.log('Start game button clicked');
+            // Switch to game section
+            navLinks.forEach(l => l.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
+            
+            const gameLink = document.querySelector('[href="#game"]');
+            if (gameLink) gameLink.classList.add('active');
+            
+            const gameSection = document.getElementById('game');
+            if (gameSection) gameSection.classList.add('active');
+            
+            // Initialize board
+            setTimeout(initializeChessBoard, 100);
+        });
+    }
     
     // Hero buttons
-    document.getElementById('start-learning-btn').addEventListener('click', function() {
-        navLinks.forEach(l => l.classList.remove('active'));
-        sections.forEach(s => s.classList.remove('active'));
-        
-        document.querySelector('[href="#game-settings"]').classList.add('active');
-        document.getElementById('game-settings').classList.add('active');
-    });
+    const startLearningBtn = safeGetElementById('start-learning-btn');
+    if (startLearningBtn) {
+        startLearningBtn.addEventListener('click', function() {
+            navLinks.forEach(l => l.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
+            
+            const settingsLink = document.querySelector('[href="#game-settings"]');
+            if (settingsLink) settingsLink.classList.add('active');
+            
+            const settingsSection = document.getElementById('game-settings');
+            if (settingsSection) settingsSection.classList.add('active');
+        });
+    }
     
-    document.getElementById('stats-btn').addEventListener('click', function() {
-        navLinks.forEach(l => l.classList.remove('active'));
-        sections.forEach(s => s.classList.remove('active'));
-        
-        document.querySelector('[href="#stats"]').classList.add('active');
-        document.getElementById('stats').classList.add('active');
-    });
+    const statsBtn = safeGetElementById('stats-btn');
+    if (statsBtn) {
+        statsBtn.addEventListener('click', function() {
+            navLinks.forEach(l => l.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
+            
+            const statsLink = document.querySelector('[href="#stats"]');
+            if (statsLink) statsLink.classList.add('active');
+            
+            const statsSection = document.getElementById('stats');
+            if (statsSection) statsSection.classList.add('active');
+        });
+    }
     
-    document.getElementById('start-playing-btn').addEventListener('click', function() {
-        console.log('Start playing button clicked');
-        // Switch to game section
-        navLinks.forEach(l => l.classList.remove('active'));
-        sections.forEach(s => s.classList.remove('active'));
-        
-        document.querySelector('[href="#game"]').classList.add('active');
-        document.getElementById('game').classList.add('active');
-        
-        // Initialize board
-        setTimeout(initializeChessBoard, 100);
-    });
+    const startPlayingBtn = safeGetElementById('start-playing-btn');
+    if (startPlayingBtn) {
+        startPlayingBtn.addEventListener('click', function() {
+            console.log('Start playing button clicked');
+            // Switch to game section
+            navLinks.forEach(l => l.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
+            
+            const gameLink = document.querySelector('[href="#game"]');
+            if (gameLink) gameLink.classList.add('active');
+            
+            const gameSection = document.getElementById('game');
+            if (gameSection) gameSection.classList.add('active');
+            
+            // Initialize board
+            setTimeout(initializeChessBoard, 100);
+        });
+    }
     
     // Home page puzzles button
-    document.getElementById('home-puzzles-btn').addEventListener('click', function() {
-        navLinks.forEach(l => l.classList.remove('active'));
-        sections.forEach(s => s.classList.remove('active'));
-        
-        document.querySelector('[href="#puzzles"]').classList.add('active');
-        document.getElementById('puzzles').classList.add('active');
-        
-        // Initialize puzzle board if not already done
-        if (!puzzleBoardInitialized) {
-            setTimeout(initializePuzzleBoard, 100);
-        }
-    });
-    
-    // Home page import game button
-    document.getElementById('import-game-btn').addEventListener('click', function() {
-        showImportModal();
-    });
-    
-    // Settings: Time control custom input
-    const timeControlSelect = document.getElementById('time-control-select');
-    const customTimeDiv = document.getElementById('custom-time');
-    
-    if (timeControlSelect && customTimeDiv) {
-        timeControlSelect.addEventListener('change', function() {
-            if (this.value === 'custom') {
-                customTimeDiv.classList.remove('hidden');
-            } else {
-                customTimeDiv.classList.add('hidden');
+    const homePuzzlesBtn = safeGetElementById('home-puzzles-btn');
+    if (homePuzzlesBtn) {
+        homePuzzlesBtn.addEventListener('click', function() {
+            navLinks.forEach(l => l.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
+            
+            const puzzlesLink = document.querySelector('[href="#puzzles"]');
+            if (puzzlesLink) puzzlesLink.classList.add('active');
+            
+            const puzzlesSection = document.getElementById('puzzles');
+            if (puzzlesSection) puzzlesSection.classList.add('active');
+            
+            // Initialize puzzle board if not already done
+            if (!puzzleBoardInitialized) {
+                setTimeout(initializePuzzleBoard, 100);
             }
         });
     }
+    
+    // Home page import game button
+    if (importGameBtn) importGameBtn.addEventListener('click', showImportModal);
     
     // Load stats from localStorage
     loadStats();
