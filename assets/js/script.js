@@ -2,10 +2,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing chess game...');
     
-    // API Configuration - Use environment variable or fallback to local for development
-    const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://127.0.0.1:5000/api'
-        : 'https://your-backend-url.com/api'; // Replace with your actual deployed backend URL
+    // API Configuration - Now uses a relative path since the API and frontend are on the same server.
+    const API_URL = '/api';
     
     // Mobile menu toggle
     const hamburger = document.querySelector('.hamburger');
