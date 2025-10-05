@@ -13,7 +13,10 @@ CORS(app)
 # AI Brain Class
 class ChessAIBrain:
     def __init__(self):
-        self.memory_file = 'ai_brain.json'
+        # CHANGE FOR DEPLOYMENT:
+        # Use a persistent path for the memory file on Render.com to save the AI's brain.
+        self.memory_file = os.path.join('/opt/render/project/data', 'ai_brain.json')
+        
         self.games_played = 0
         self.move_history = []
         self.position_memory = {}  # Store positions and their outcomes
