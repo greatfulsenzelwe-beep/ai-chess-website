@@ -6,20 +6,17 @@ import json
 import os
 from datetime import datetime
 
-# Initialize Flask App to serve static files from the current directory
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
 
 # --- AI Brain Class ---
 class ChessAIBrain:
     def __init__(self):
-        # For local development, use a relative path in the project root.
-        # For deployment on Render, this will be overridden by an environment variable.
-        if os.environ.get('RENDER'):
-            self.memory_file = os.path.join('/opt/render/project/data', 'ai_brain.json')
-        else:
-            self.memory_file = 'ai_brain.json'
-            
+        # CORRECTED PATH FOR NETLIFY
+        # The root directory is persistent on Netlify's build environment.
+        # This allows the AI brain to be saved and persist between function invocations.
+        self.memory_file = 'ai_brain.json'
+        
         self.games_played = 0
         self.move_history = []
         self.position_memory = {}
@@ -49,15 +46,13 @@ class ChessAIBrain:
         """Save the brain to file"""
         data = {
             'games_played': self.games_played,
-            'move_history': self.move_history[-50:],
+            'move_history': self.move_history[-50:],  # Keep last 50 games
             'position_memory': self.position_memory,
             'chat_patterns': self.chat_patterns,
             'personality': self.personality,
             'difficulty': self.difficulty,
             'last_updated': datetime.now().isoformat()
         }
-        # Ensure the directory exists before saving
-        os.makedirs(os.path.dirname(self.memory_file), exist_ok=True)
         with open(self.memory_file, 'w') as f:
             json.dump(data, f, indent=2)
     
@@ -148,7 +143,7 @@ class ChessAIBrain:
             elif wins == 0:
                 difficulties = ["beginner", "intermediate", "advanced", "expert"]
                 current_index = difficulties.index(self.difficulty)
-                if current_index > 0:
+                if (current_index > 0):
                     self.difficulty = difficulties[current_index - 1]
     
     def generate_chat_response(self, message):
@@ -223,7 +218,6 @@ def learn():
 def get_stats():
     return jsonify({'games_played': ai_brain.games_played, 'difficulty': ai_brain.difficulty, 'personality': ai_brain.personality, 'positions_learned': len(ai_brain.position_memory), 'recent_results': ai_brain.move_history[-5:] if ai_brain.move_history else []})
 
-# --- NEW: Missing API Endpoints Required by Frontend ---
 @app.route('/api/puzzle', methods=['POST'])
 def get_puzzle():
     """Provides a chess puzzle."""
@@ -249,13 +243,7 @@ def analyze_game():
             elif rand < 0.85: classification = 'mistake'
             else: classification = 'blunder'
             move_classifications.append({'type': classification, 'explanation': f'This move was classified as {classification}.'})
-        counts = {
-            'brilliant': sum(1 for m in move_classifications if m['type'] == 'brilliant'),
-            'best': sum(1 for m in move_classifications if m['type'] == 'best'),
-            'good': sum(1 for m in move_classifications if m['type'] == 'good'),
-            'mistake': sum(1 for m in move_classifications if m['type'] == 'mistake'),
-            'blunder': sum(1 for m in move_classifications if m['type'] == 'blunder'),
-        }
+        counts = {'brilliant': sum(1 for m in move_classifications if m['type'] == 'brilliant'), 'best': sum(1 for m in move_classifications if m['type'] == 'best'), 'good': sum(1 for m in move_classifications if m['type'] == 'good'), 'mistake': sum(1 for m in move_classifications if m['type'] == 'mistake'), 'blunder': sum(1 for m in move_classifications if m['type'] == 'blunder')}
         accuracy = round(((counts['brilliant'] + counts['best'] + counts['good']) / len(moves)) * 100) if moves else 0
         return jsonify({'analysis': {'result': game_data.get('result', 'Unknown'), 'accuracy': accuracy, 'moveClassifications': counts, 'moveAnalysis': move_classifications}})
     except Exception as e:
