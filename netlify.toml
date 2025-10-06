@@ -1,32 +1,20 @@
-# netlify.toml
-
 [build]
-  # This command now ONLY installs dependencies.
   command = "pip install -r requirements.txt"
-  
-  # This tells Netlify where your static frontend files (like index.html) are.
   publish = "."
 
-# This section tells Netlify where to find your serverless functions.
 [functions]
   directory = "netlify/functions"
 
-# This rule is essential. It forwards any request starting with /api/
-# to your Python function running on Netlify's infrastructure.
-# IT MUST COME BEFORE THE GENERAL CATCH-ALL RULE.
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
 
-# This rule is a fallback for your frontend's client-side routing.
-# It serves index.html for any path that isn't a file or an API call.
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Your security headers are fine and can remain.
 [[headers]]
   for = "/*"
   [headers.values]
