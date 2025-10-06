@@ -245,14 +245,15 @@ def analyze_game():
             move_classifications.append({'type': classification, 'explanation': f'This move was classified as {classification}.'})
         counts = {'brilliant': sum(1 for m in move_classifications if m['type'] == 'brilliant'), 'best': sum(1 for m in move_classifications if m['type'] == 'best'), 'good': sum(1 for m in move_classifications if m['type'] == 'good'), 'mistake': sum(1 for m in move_classifications if m['type'] == 'mistake'), 'blunder': sum(1 for m in move_classifications if m['type'] == 'blunder')}
         accuracy = round(((counts['brilliant'] + counts['best'] + counts['good']) / len(moves)) * 100) if moves else 0
-        return jsonify({'analysis': {'result': game_data.get('result', 'Unknown'), 'accuracy': accuracy, 'moveClassifications': counts, 'moveAnalysis': move_classifications}})
+        return jsonify({'analysis': {'result': game_data.get('result', 'Unknown'), 'accuracy': accuracy, 'moveClassifications': counts, 'moveAnalysis': move_classifications})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e)}), 500)
 
 # --- Route to serve the main website ---
 @app.route('/')
 def serve_index():
     return send_from_directory('.', 'index.html')
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+# --- THIS IS THE LINE TO REMOVE ---
+# if __name__ == '__main__':
+#     app.run(debug=True, host='0.0.0.0', port=5000)
