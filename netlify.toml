@@ -2,7 +2,6 @@
 
 [build]
   # This command now ONLY installs dependencies.
-  # The server is run by Netlify Functions, not here.
   command = "pip install -r requirements.txt"
   
   # This tells Netlify where your static frontend files (like index.html) are.
@@ -14,6 +13,7 @@
 
 # This rule is essential. It forwards any request starting with /api/
 # to your Python function running on Netlify's infrastructure.
+# IT MUST COME BEFORE THE GENERAL CATCH-ALL RULE.
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
